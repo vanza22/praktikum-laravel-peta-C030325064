@@ -65,6 +65,11 @@
         </p>
         <div id="map-picker" style="height: 400px; width: 100%;" class="rounded border"></div>
 
+        <button type="button" id="gunakan-lokasi"
+                class="px-4 py-2 bg-green-600 text-white rounded">
+            Gunakan Lokasi Saya
+        </button>
+
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <label for="latitude" class="block font-medium">Latitude</label>
@@ -120,6 +125,27 @@
         latInput.value = lat.toFixed(7);
         lngInput.value = lng.toFixed(7);
     }
+
+    document.getElementById('gunakan-lokasi')
+        .addEventListener('click', () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (posisi) => {
+                        const lat = posisi.coords.latitude;
+                        const lng = posisi.coords.longitude;
+
+                        marker.setLatLng([lat, lng]);
+                        map.setView([lat, lng], 16);
+                        isiKoordinat(lat, lng);
+                    },
+                    () => {
+                        alert('Gagal mendapatkan lokasi. Pastikan izin lokasi sudah diberikan.');
+                    }
+                );
+            } else {
+                alert('Browser tidak mendukung fitur lokasi.');
+            }
+        });
 
     map.on('click', (e) => {
         marker.setLatLng(e.latlng);
