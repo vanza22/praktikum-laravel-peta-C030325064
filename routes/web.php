@@ -31,6 +31,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // Route admin
-Route::prefix('admin')->name('admin.')->group(function () {
-    Route::resource('sekolah', SekolahController::class)->except('show');
-});
+Route::middleware(['auth', 'role:dinas'])
+    ->prefix('admin')->name('admin.')->group(function () {
+        Route::resource('sekolah', SekolahController::class)->except('show');
+    });
