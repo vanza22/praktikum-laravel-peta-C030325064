@@ -10,17 +10,30 @@
 </head>
 <body class="bg-gray-100 text-gray-800">
     <nav class="bg-blue-800 text-white">
-        <div class="max-w-6xl mx-auto px-4 py-3 flex gap-6">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center gap-6">
             <span class="font-bold">SIG Sekolah</span>
             <a href="{{ url('/') }}">Peta Publik</a>
-            <a href="{{ route('admin.sekolah.index') }}">Data Sekolah</a>
-
             @auth
-                <form method="POST" action="{{ route('logout') }}" class="ml-auto">
+                <a href="{{ route('dashboard') }}">Dashboard</a>
+
+                @if (auth()->user()->isDinas())
+                    <a href="{{ route('dinas.sekolah.index') }}">Data Sekolah</a>
+                @endif
+
+                @if (auth()->user()->isSekolah() && auth()->user()->sekolah_id)
+                    <a href="{{ route('sekolah.edit', auth()->user()->sekolah_id) }}">
+                        Sekolah Saya
+                    </a>
+                @endif
+
+                <form method="POST" action="{{ route('logout') }}"
+                      class="ml-auto flex items-center gap-3">
                     @csrf
-                    <button class="underline">
-                        Keluar ({{ auth()->user()->name }})
-                    </button>
+                    <span class="text-sm">
+                        {{ auth()->user()->name }}
+                        ({{ auth()->user()->roleLabel() }})
+                    </span>
+                    <button class="underline">Keluar</button>
                 </form>
             @endauth
         </div>
@@ -32,9 +45,15 @@
                 {{ session('success') }}
             </div>
         @endif
+        @if (session('error'))
+            <div class="mb-4 p-3 rounded bg-red-100 text-red-800">
+                {{ session('error') }}
+            </div>
+        @endif
 
         @yield('content')
     </main>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     @stack('scripts')
 </body>

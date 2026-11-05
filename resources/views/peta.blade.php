@@ -72,7 +72,11 @@
 
         <span id="jumlah"></span>
 
-        <a href="{{ route('admin.sekolah.index') }}">Kelola Data</a>
+       @auth
+            <a href="{{ route('dashboard') }}">Dashboard</a>
+        @else
+            <a href="{{ route('login') }}">Masuk</a>
+        @endauth
     </header>
 
     <div id="map"></div>
