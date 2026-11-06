@@ -13,18 +13,16 @@
         <div class="max-w-6xl mx-auto px-4 py-3 flex items-center gap-6">
             <span class="font-bold">SIG Sekolah</span>
             <a href="{{ url('/') }}">Peta Publik</a>
-            @auth
-                <a href="{{ route('dashboard') }}">Dashboard</a>
+           @auth
+            <a href="{{ route('dashboard') }}">Dashboard</a>
 
-                @if (auth()->user()->isDinas())
-                    <a href="{{ route('dinas.sekolah.index') }}">Data Sekolah</a>
-                @endif
+            @if (auth()->user()->isAdmin())
+                <a href="{{ route('admin.users.index') }}">Pengguna</a>
+            @endif
 
-                @if (auth()->user()->isSekolah() && auth()->user()->sekolah_id)
-                    <a href="{{ route('sekolah.edit', auth()->user()->sekolah_id) }}">
-                        Sekolah Saya
-                    </a>
-                @endif
+            @if (auth()->user()->isDinas())
+                <a href="{{ route('dinas.sekolah.index') }}">Data Sekolah</a>
+            @endif
 
                 <form method="POST" action="{{ route('logout') }}"
                       class="ml-auto flex items-center gap-3">

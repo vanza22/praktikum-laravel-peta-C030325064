@@ -6,6 +6,7 @@ use App\Http\Controllers\PetaController;
 use App\Http\Controllers\SekolahController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfilSekolahController;
+use App\Http\Controllers\UserController;
 
 // Publik
 Route::get('/', [PetaController::class, 'index'])->name('peta.index');
@@ -32,6 +33,12 @@ Route::middleware('auth')->group(function () {
         ->group(function () {
             Route::resource('sekolah', SekolahController::class)
                 ->only(['index', 'create', 'store', 'destroy']);
+        });
+
+    // Admin: kelola pengguna
+    Route::middleware('role:admin')->prefix('admin')->name('admin.')
+        ->group(function () {
+            Route::resource('users', UserController::class)->except('show');
         });
 
     // Dinas dan Sekolah: ubah data (dibatasi Policy)
