@@ -44,8 +44,10 @@
                   {{ $s->latitude }}, {{ $s->longitude }}
               </td>
               <td class="p-3 flex gap-3">
-                  <a href="{{ route('sekolah.edit', $s) }}"
-                     class="text-blue-700">Ubah</a>
+                  <a href="{{ auth()->user()->isAdmin()
+                        ? route('admin.sekolah.edit', $s)
+                        : route('sekolah.edit', $s) }}"
+                    class="text-blue-700">Ubah</a>
                   <form method="POST"
                         action="{{ route('dinas.sekolah.destroy', $s) }}"
                         onsubmit="return confirm('Hapus data ini?')">

@@ -6,6 +6,7 @@ use App\Models\Sekolah;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Enums\Role;
 
 class UserController extends Controller
 {
@@ -32,7 +33,7 @@ class UserController extends Controller
     {
         $data = $request->validate($this->rules($request));
 
-        if ($data['role'] !== User::ROLE_SEKOLAH) {
+        if ($data['role'] !== Role::SEKOLAH->value) {
             $data['sekolah_id'] = null;
         }
 
@@ -54,13 +55,13 @@ class UserController extends Controller
     {
         $data = $request->validate($this->rules($request, $user->id));
 
-        if ($user->is($request->user()) && $data['role'] !== User::ROLE_ADMIN) {
+        if ($user->is($request->user()) && $data['role'] !== Role::ADMIN->value) {
             return back()->withInput()->withErrors([
                 'role' => 'Anda tidak dapat mengubah role akun sendiri.',
             ]);
         }
 
-        if ($data['role'] !== User::ROLE_SEKOLAH) {
+        if ($data['role'] !== Role::SEKOLAH->value) {
             $data['sekolah_id'] = null;
         }
 
@@ -86,6 +87,20 @@ class UserController extends Controller
             ->with('success', 'Pengguna berhasil dihapus.');
     }
 
+    public function toggleStatus(Request $request, User $user)
+    {
+        if ($user->is($request->user())) {
+            return back()->with('error', 'Anda tidak dapat menonaktifkan akun sendiri.');
+        }
+
+        $user->update([
+            'is_active' => !$user->is_active,
+        ]);
+
+        return redirect()->route('admin.users.index')
+            ->with('success', 'Status pengguna berhasil diperbarui.');
+    }
+
     private function daftarSekolah()
     {
         return Sekolah::orderBy('nama')->get(['id', 'npsn', 'nama']);
@@ -98,9 +113,9 @@ class UserController extends Controller
             'email' => ['required', 'email', 'max:255',
                          Rule::unique('users', 'email')->ignore($id)],
             'role' => ['required', Rule::in([
-                         User::ROLE_ADMIN, User::ROLE_DINAS, User::ROLE_SEKOLAH])],
+                         Role::ADMIN->value, Role::DINAS->value, Role::SEKOLAH->value])],
             'sekolah_id' => [
-                Rule::requiredIf($request->role === User::ROLE_SEKOLAH),
+                Rule::requiredIf($request->role === Role::SEKOLAH->value),
                 'nullable', 'exists:sekolahs,id',
             ],
             'password' => [$id ? 'nullable' : 'required',

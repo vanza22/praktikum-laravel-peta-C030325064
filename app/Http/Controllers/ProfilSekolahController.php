@@ -7,9 +7,17 @@ use App\Models\Sekolah;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 
 class ProfilSekolahController extends Controller
 {
+    public function show(Sekolah $sekolah)
+    {
+        $profil = $sekolah->profil;
+
+        return view('sekolah.profil-publik', compact('sekolah', 'profil'));
+    }
+
     public function edit(Sekolah $sekolah)
     {
         Gate::authorize('update', $sekolah);
@@ -34,7 +42,18 @@ class ProfilSekolahController extends Controller
             'jumlah_siswa'   => ['nullable', 'integer', 'min:0'],
             'jumlah_guru'    => ['nullable', 'integer', 'min:0'],
             'deskripsi'      => ['nullable', 'string', 'max:2000'],
+            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
+
+        if ($request->hasFile('logo')) {
+            $profilLama = $sekolah->profil;
+
+            if ($profilLama && $profilLama->logo) {
+                Storage::disk('public')->delete($profilLama->logo);
+            }
+
+            $data['logo'] = $request->file('logo')->store('logo-sekolah', 'public');
+        }
 
         $sekolah->profil()->updateOrCreate([], $data);
 

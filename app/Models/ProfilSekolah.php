@@ -10,7 +10,7 @@ class ProfilSekolah extends Model
     protected $fillable = [
         'sekolah_id', 'kepala_sekolah', 'email', 'website',
         'tahun_berdiri', 'akreditasi', 'jumlah_siswa',
-        'jumlah_guru', 'deskripsi',
+        'jumlah_guru', 'deskripsi', 'logo',
     ];
 
     public function sekolah(): BelongsTo

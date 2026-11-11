@@ -19,7 +19,8 @@
     $cls = 'w-full border rounded px-3 py-2';
 @endphp
 
-<form method="POST" action="{{ route('sekolah.profil.update', $sekolah) }}"
+<form method="POST" enctype="multipart/form-data"
+      action="{{ route('sekolah.profil.update', $sekolah) }}"
       class="bg-white rounded shadow p-6 grid md:grid-cols-2 gap-6">
     @csrf
     @method('PUT')
@@ -60,6 +61,30 @@
                   class="{{ $cls }}">{{ old('deskripsi', $profil->deskripsi)
 }}</textarea>
         @error('deskripsi')
+            <p class="text-red-600 text-sm">{{ $message }}</p>
+        @enderror
+    </div>
+
+    <div class="md:col-span-2">
+        <label for="logo" class="block font-medium">Logo Sekolah</label>
+
+        @if ($profil->logo)
+            <div class="my-3">
+                <img src="{{ asset('storage/' . $profil->logo) }}"
+                     alt="Logo Sekolah"
+                     class="w-24 h-24 object-contain border rounded p-2">
+            </div>
+        @endif
+
+        <input type="file" id="logo" name="logo"
+               accept="image/jpeg,image/png,image/webp"
+               class="{{ $cls }}">
+
+        <p class="text-gray-500 text-sm mt-1">
+            Format JPG, JPEG, PNG, atau WEBP. Maksimal 2 MB.
+        </p>
+
+        @error('logo')
             <p class="text-red-600 text-sm">{{ $message }}</p>
         @enderror
     </div>

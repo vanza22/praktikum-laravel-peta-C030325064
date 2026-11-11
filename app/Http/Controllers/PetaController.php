@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Sekolah;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PetaController extends Controller
 {
@@ -12,7 +13,7 @@ class PetaController extends Controller
         return view('peta');
     }
 
-   public function geojson(Request $request)
+    public function geojson(Request $request)
     {
         $features = Sekolah::with('profil')
             ->when($request->jenjang, fn ($q, $j) => $q->where('jenjang', $j))
@@ -25,6 +26,7 @@ class PetaController extends Controller
                     'coordinates' => [$s->longitude, $s->latitude],
                 ],
                 'properties' => [
+                    'id'              => $s->id,
                     'npsn'            => $s->npsn,
                     'nama'            => $s->nama,
                     'jenjang'         => $s->jenjang,
@@ -36,6 +38,9 @@ class PetaController extends Controller
                     'akreditasi'      => $s->profil?->akreditasi,
                     'jumlah_siswa'    => $s->profil?->jumlah_siswa,
                     'jumlah_guru'     => $s->profil?->jumlah_guru,
+                    'logo' => $s->profil?->logo
+                        ? Storage::url($s->profil->logo)
+                        : null,
                 ],
             ]);
 

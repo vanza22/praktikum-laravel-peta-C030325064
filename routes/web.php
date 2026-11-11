@@ -12,6 +12,9 @@ use App\Http\Controllers\UserController;
 Route::get('/', [PetaController::class, 'index'])->name('peta.index');
 Route::get('/data/sekolah', [PetaController::class, 'geojson'])
     ->name('peta.data');
+Route::get('/profil-sekolah/{sekolah}',
+    [ProfilSekolahController::class, 'show'])
+    ->name('sekolah.profil.public');
 
 // Tamu
 Route::middleware('guest')->group(function () {
@@ -28,6 +31,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)
         ->name('dashboard');
 
+    // Ubah kata sandi
+    Route::get('/password', [AuthController::class, 'showChangePassword'])
+        ->name('password.edit');
+    Route::put('/password', [AuthController::class, 'updatePassword'])
+        ->name('password.update');
+
     // Dinas: daftar, tambah, dan hapus sekolah
     Route::middleware('role:dinas')->prefix('dinas')->name('dinas.')
         ->group(function () {
@@ -35,10 +44,24 @@ Route::middleware('auth')->group(function () {
                 ->only(['index', 'create', 'store', 'destroy']);
         });
 
+    // Admin: melihat dan mengubah data sekolah
+    Route::middleware('role:admin')->prefix('admin')->name('admin.')
+        ->group(function () {
+            Route::get('sekolah', [SekolahController::class, 'index'])
+                ->name('sekolah.index');
+            Route::get('sekolah/{sekolah}/edit', [SekolahController::class, 'edit'])
+                ->name('sekolah.edit');
+            Route::put('sekolah/{sekolah}', [SekolahController::class, 'update'])
+                ->name('sekolah.update');
+        });
+
     // Admin: kelola pengguna
     Route::middleware('role:admin')->prefix('admin')->name('admin.')
         ->group(function () {
             Route::resource('users', UserController::class)->except('show');
+
+            Route::patch('users/{user}/status', [UserController::class, 'toggleStatus'])
+                ->name('users.toggle-status');
         });
 
     // Dinas dan Sekolah: ubah data (dibatasi Policy)

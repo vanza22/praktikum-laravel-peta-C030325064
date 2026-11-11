@@ -57,6 +57,14 @@
                     style="width: {{ $kelengkapan }}%">
                 </div>
             </div>
+
+            <div class="mt-6 pt-4 border-t border-gray-200">
+                <a
+                    href="{{ route('sekolah.edit', $sekolah) }}"
+                    class="inline-flex items-center bg-blue-50 text-blue-800 border border-blue-200 px-4 py-2 rounded hover:bg-blue-100 transition">
+                    Ubah Data Sekolah
+                </a>
+            </div>
         </div>
 
     @else

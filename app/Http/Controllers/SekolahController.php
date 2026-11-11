@@ -6,6 +6,7 @@ use App\Models\Sekolah;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class SekolahController extends Controller
 {
@@ -52,9 +53,32 @@ class SekolahController extends Controller
 
         $data = $request->validate($this->rules($sekolah->id));
 
-        // NPSN adalah identitas resmi: tidak boleh diubah oleh sekolah
         if ($request->user()->isSekolah()) {
+            // NPSN tidak boleh diubah oleh akun sekolah
             unset($data['npsn']);
+
+            // Menghitung jarak perubahan koordinat
+            $latAwal = deg2rad((float) $sekolah->latitude);
+            $lngAwal = deg2rad((float) $sekolah->longitude);
+
+            $latBaru = deg2rad((float) $data['latitude']);
+            $lngBaru = deg2rad((float) $data['longitude']);
+
+            $deltaLat = $latBaru - $latAwal;
+            $deltaLng = $lngBaru - $lngAwal;
+
+            $a = sin($deltaLat / 2) ** 2
+                + cos($latAwal) * cos($latBaru)
+                * sin($deltaLng / 2) ** 2;
+
+            $jarak = 2 * 6371000 * asin(min(1, sqrt($a)));
+
+            // Maksimal perubahan koordinat adalah 500 meter
+            if ($jarak > 500) {
+                throw ValidationException::withMessages([
+                    'latitude' => 'Perubahan lokasi sekolah tidak boleh lebih dari 500 meter.',
+                ]);
+            }
         }
 
         $sekolah->update($data);
@@ -81,8 +105,11 @@ class SekolahController extends Controller
     private function rules(?int $id = null): array
     {
         return [
-            'npsn'      => ['required', 'digits:8',
-                            Rule::unique('sekolahs', 'npsn')->ignore($id)],
+            'npsn' => [
+                $id ? 'sometimes' : 'required',
+                'digits:8',
+                Rule::unique('sekolahs', 'npsn')->ignore($id),
+            ],
             'nama'      => ['required', 'string', 'max:255'],
             'jenjang'   => ['required', Rule::in(['SD', 'SMP', 'SMA', 'SMK'])],
             'status'    => ['required', Rule::in(['Negeri', 'Swasta'])],

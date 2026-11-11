@@ -9,7 +9,7 @@ class SekolahPolicy
 {
     public function update(User $user, Sekolah $sekolah): bool
     {
-        if ($user->isDinas()) {
+        if ($user->isAdmin() || $user->isDinas()) {
             return true;
         }
 

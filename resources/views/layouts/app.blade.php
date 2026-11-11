@@ -15,6 +15,7 @@
             <a href="{{ url('/') }}">Peta Publik</a>
            @auth
             <a href="{{ route('dashboard') }}">Dashboard</a>
+            <a href="{{ route('password.edit') }}">Ubah Kata Sandi</a>
 
             @if (auth()->user()->isAdmin())
                 <a href="{{ route('admin.users.index') }}">Pengguna</a>

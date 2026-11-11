@@ -136,8 +136,8 @@ class RbacTest extends TestCase
             'status' => 'Negeri',
             'alamat' => 'Jl. Baru',
             'kecamatan' => 'Uji',
-            'latitude' => -3.31,
-            'longitude' => 114.6,
+            'latitude' => -3.3001,
+            'longitude' => 114.5901,
         ])->assertRedirect();
 
         $a->refresh();

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Sekolah;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Enums\Role;
 
 class DashboardController extends Controller
 {
@@ -19,9 +20,9 @@ class DashboardController extends Controller
 
         if ($user->isAdmin()) {
             $jumlahPerRole = [
-                'Admin' => User::where('role', User::ROLE_ADMIN)->count(),
-                'Dinas Pendidikan' => User::where('role', User::ROLE_DINAS)->count(),
-                'Sekolah' => User::where('role', User::ROLE_SEKOLAH)->count(),
+                'Admin' => User::where('role', Role::ADMIN->value)->count(),
+                'Dinas Pendidikan' => User::where('role', Role::DINAS->value)->count(),
+                'Sekolah' => User::where('role', Role::SEKOLAH->value)->count(),
             ];
         } elseif ($user->isDinas()) {
             $jumlahSekolah = Sekolah::count();

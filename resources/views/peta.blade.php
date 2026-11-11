@@ -163,6 +163,14 @@
                 const [lng, lat] = fitur.geometry.coordinates;
 
                 layer.bindPopup(`
+                    ${p.logo ? `
+                        <div style="text-align:center; margin-bottom:10px;">
+                            <img src="${esc(p.logo)}"
+                                alt="Logo ${esc(p.nama)}"
+                                style="width:90px; height:90px; object-fit:contain;">
+                        </div>
+                    ` : ''}
+
                     <strong>${esc(p.nama)}</strong><br>
                     NPSN: ${esc(p.npsn)}<br>
                     ${esc(p.jenjang)} - ${esc(p.status)}<br>
@@ -172,6 +180,18 @@
                     Akreditasi: ${esc(p.akreditasi) || '-'}<br>
                     Siswa: ${p.jumlah_siswa ?? '-'} | Guru: ${p.jumlah_guru ?? '-'}<br>
                     <small>Koordinat: ${lat}, ${lng}</small>
+                    <br><br>
+                    <a href="/profil-sekolah/${p.id}"
+                        style="
+                            display: inline-block;
+                            background: #1d4ed8;
+                            color: white;
+                            padding: 7px 12px;
+                            border-radius: 5px;
+                            text-decoration: none;
+                        ">
+                        Lihat Profil Sekolah
+                    </a>
                 `);
             }
         }).addTo(map);
