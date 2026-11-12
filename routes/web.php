@@ -9,12 +9,18 @@ use App\Http\Controllers\ProfilSekolahController;
 use App\Http\Controllers\UserController;
 
 // Publik
-Route::get('/', [PetaController::class, 'index'])->name('peta.index');
-Route::get('/data/sekolah', [PetaController::class, 'geojson'])
-    ->name('peta.data');
-Route::get('/profil-sekolah/{sekolah}',
-    [ProfilSekolahController::class, 'show'])
-    ->name('sekolah.profil.public');
+Route::controller(PetaController::class)->group(function () {
+    Route::get('/', 'index')->name('peta.index');
+    Route::get('/data/sekolah', 'geojson')->name('peta.data');
+    Route::get('/pencarian', 'cari')->name('peta.cari');
+    Route::get('/klaster', 'klaster')->name('peta.klaster');
+    Route::get('/peta-panas', 'panas')->name('peta.panas');
+    Route::get('/wilayah', 'wilayah')->name('peta.wilayah');
+    Route::get('/data/wilayah', 'geojsonWilayah')->name('peta.data.wilayah');
+    Route::get('/rute', 'rute')->name('peta.rute');
+    Route::get('/cek-alamat', 'alamat')->name('peta.alamat');
+
+});
 
 // Tamu
 Route::middleware('guest')->group(function () {
