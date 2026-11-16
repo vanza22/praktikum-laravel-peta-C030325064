@@ -89,10 +89,35 @@ class PetaController extends Controller
 
     public function geojson(Request $request)
     {
-        $features = Sekolah::with('profil')
+        // Validasi batas peta yang dikirim dari JavaScript
+        $batas = $request->validate([
+            'north' => 'nullable|numeric|between:-90,90',
+            'south' => 'nullable|numeric|between:-90,90',
+            'east'  => 'nullable|numeric|between:-180,180',
+            'west'  => 'nullable|numeric|between:-180,180',
+        ]);
+
+        // Query dasar dengan filter Jenjang dan Status
+        $query = Sekolah::with('profil')
             ->when($request->jenjang, fn ($q, $j) => $q->where('jenjang', $j))
-            ->when($request->status, fn ($q, $s) => $q->where('status', $s))
-            ->get()
+            ->when($request->status, fn ($q, $s) => $q->where('status', $s));
+
+        // Terapkan bounding box jika keempat batas tersedia
+        if (
+            isset($batas['north'], $batas['south'], $batas['east'], $batas['west'])
+        ) {
+            $query->whereBetween('latitude', [
+                $batas['south'],
+                $batas['north'],
+            ]);
+
+            $query->whereBetween('longitude', [
+                $batas['west'],
+                $batas['east'],
+            ]);
+        }
+
+        $features = $query->get()
             ->map(fn ($s) => [
                 'type' => 'Feature',
                 'geometry' => [

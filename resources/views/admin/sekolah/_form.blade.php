@@ -5,10 +5,12 @@
         'kecamatan' => 'Kecamatan',
         'telepon'   => 'Telepon',
     ];
+
     $pilihan = [
         'jenjang' => ['SD', 'SMP', 'SMA', 'SMK'],
         'status' => ['Negeri', 'Swasta'],
     ];
+
     $cls = 'w-full border rounded px-3 py-2';
 @endphp
 
@@ -19,10 +21,12 @@
                 <label for="{{ $name }}" class="block font-medium">
                     {{ $label }}
                 </label>
+
                 <input type="text" id="{{ $name }}" name="{{ $name }}"
                     value="{{ old($name, $sekolah->$name) }}"
-                   @readonly($name === 'npsn' && auth()->user()->isSekolah())
+                    @readonly($name === 'npsn' && auth()->user()->isSekolah())
                     class="{{ $cls }}">
+
                 @error($name)
                     <p class="text-red-600 text-sm">{{ $message }}</p>
                 @enderror
@@ -34,9 +38,11 @@
                 <label for="{{ $name }}" class="block font-medium">
                     {{ ucfirst($name) }}
                 </label>
+
                 <select id="{{ $name }}" name="{{ $name }}"
                         class="{{ $cls }}">
                     <option value="">-- Pilih --</option>
+
                     @foreach ($opsi as $o)
                         <option value="{{ $o }}"
                             @selected(old($name, $sekolah->$name) === $o)>
@@ -44,6 +50,7 @@
                         </option>
                     @endforeach
                 </select>
+
                 @error($name)
                     <p class="text-red-600 text-sm">{{ $message }}</p>
                 @enderror
@@ -52,11 +59,21 @@
 
         <div>
             <label for="alamat" class="block font-medium">Alamat</label>
+
             <textarea id="alamat" name="alamat" rows="3"
                       class="{{ $cls }}">{{ old('alamat', $sekolah->alamat) }}</textarea>
+
             @error('alamat')
                 <p class="text-red-600 text-sm">{{ $message }}</p>
             @enderror
+
+            <div class="mt-2 flex flex-wrap items-center gap-3">
+                <button type="button" id="isi-alamat"
+                    style="display:block; background:#4f46e5; color:white; padding:10px 16px; border-radius:6px; margin-top:10px;">
+                    Isi Alamat dari Peta
+                </button>
+                <span id="status-alamat" class="text-sm text-gray-600"></span>
+            </div>
         </div>
     </div>
 
@@ -64,7 +81,10 @@
         <p class="font-medium">
             Klik peta atau geser marker untuk menentukan lokasi sekolah
         </p>
-        <div id="map-picker" style="height: 400px; width: 100%;" class="rounded border"></div>
+
+        <div id="map-picker"
+             style="height: 400px; width: 100%;"
+             class="rounded border"></div>
 
         <button type="button" id="gunakan-lokasi"
                 class="px-4 py-2 bg-green-600 text-white rounded">
@@ -74,18 +94,23 @@
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <label for="latitude" class="block font-medium">Latitude</label>
+
                 <input type="number" step="any" id="latitude" name="latitude"
                        value="{{ old('latitude', $sekolah->latitude) }}"
                        class="{{ $cls }}">
+
                 @error('latitude')
                     <p class="text-red-600 text-sm">{{ $message }}</p>
                 @enderror
             </div>
+
             <div>
                 <label for="longitude" class="block font-medium">Longitude</label>
+
                 <input type="number" step="any" id="longitude" name="longitude"
                        value="{{ old('longitude', $sekolah->longitude) }}"
                        class="{{ $cls }}">
+
                 @error('longitude')
                     <p class="text-red-600 text-sm">{{ $message }}</p>
                 @enderror
@@ -97,78 +122,152 @@
                     class="px-5 py-2 bg-blue-700 text-white rounded">
                 Simpan
             </button>
-           <a href="{{ auth()->user()->isDinas()
+
+            <a href="{{ auth()->user()->isDinas()
                     ? route('dinas.sekolah.index')
                     : route('dashboard') }}"
-                class="px-5 py-2 bg-gray-300 rounded">Batal</a>
+                class="px-5 py-2 bg-gray-300 rounded">
+                Batal
+            </a>
         </div>
     </div>
 </div>
 
 @push('scripts')
 <script>
+document.addEventListener('DOMContentLoaded', function () {
+
     const latInput = document.getElementById('latitude');
     const lngInput = document.getElementById('longitude');
 
+    const tombolLokasi = document.getElementById('gunakan-lokasi');
+    const tombolAlamat = document.getElementById('isi-alamat');
+    const statusAlamat = document.getElementById('status-alamat');
+
     const sudahAda = latInput.value !== '' && lngInput.value !== '';
+
     const pusat = sudahAda
         ? [parseFloat(latInput.value), parseFloat(lngInput.value)]
-        : [-3.3194, 114.5908];   // pusat Kota Banjarmasin
+        : [-3.3194, 114.5908];
 
-    const map = L.map('map-picker').setView(pusat, sudahAda ? 16 : 13);
+    // Membuat peta
+    const map = L.map('map-picker').setView(
+        pusat,
+        sudahAda ? 16 : 13
+    );
 
+    // Menampilkan peta OpenStreetMap
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    const marker = L.marker(pusat, { draggable: true }).addTo(map);
+    // Membuat marker yang bisa digeser
+    const marker = L.marker(pusat, {
+        draggable: true
+    }).addTo(map);
 
+    // Mengisi koordinat
     function isiKoordinat(lat, lng) {
         latInput.value = lat.toFixed(7);
         lngInput.value = lng.toFixed(7);
     }
 
-    document.getElementById('gunakan-lokasi')
-        .addEventListener('click', () => {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (posisi) => {
-                        const lat = posisi.coords.latitude;
-                        const lng = posisi.coords.longitude;
+    // Menggunakan lokasi perangkat
+    tombolLokasi.addEventListener('click', function () {
 
-                        marker.setLatLng([lat, lng]);
-                        map.setView([lat, lng], 16);
-                        isiKoordinat(lat, lng);
-                    },
-                    () => {
-                        alert('Gagal mendapatkan lokasi. Pastikan izin lokasi sudah diberikan.');
-                    }
-                );
-            } else {
-                alert('Browser tidak mendukung fitur lokasi.');
+        if (!navigator.geolocation) {
+            alert('Browser tidak mendukung fitur lokasi.');
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            function (posisi) {
+                const lat = posisi.coords.latitude;
+                const lng = posisi.coords.longitude;
+
+                marker.setLatLng([lat, lng]);
+                map.setView([lat, lng], 16);
+
+                isiKoordinat(lat, lng);
+            },
+            function () {
+                alert('Gagal mendapatkan lokasi. Pastikan izin lokasi sudah diberikan.');
             }
-        });
+        );
+    });
 
-    map.on('click', (e) => {
+    // Mengubah marker ketika peta diklik
+    map.on('click', function (e) {
         marker.setLatLng(e.latlng);
         isiKoordinat(e.latlng.lat, e.latlng.lng);
     });
 
-    marker.on('dragend', () => {
-        const p = marker.getLatLng();
-        isiKoordinat(p.lat, p.lng);
+    // Mengubah koordinat ketika marker digeser
+    marker.on('dragend', function () {
+        const posisi = marker.getLatLng();
+
+        isiKoordinat(posisi.lat, posisi.lng);
     });
 
-    [latInput, lngInput].forEach((el) => {
-        el.addEventListener('change', () => {
+    // Mengubah marker ketika koordinat diketik manual
+    [latInput, lngInput].forEach(function (el) {
+        el.addEventListener('change', function () {
             const lat = parseFloat(latInput.value);
             const lng = parseFloat(lngInput.value);
+
             if (!isNaN(lat) && !isNaN(lng)) {
                 marker.setLatLng([lat, lng]);
                 map.setView([lat, lng], 16);
             }
         });
     });
+
+    // REVERSE GEOCODING
+    tombolAlamat.addEventListener('click', async function () {
+
+        const posisi = marker.getLatLng();
+
+        tombolAlamat.disabled = true;
+        statusAlamat.textContent = 'Sedang mencari alamat...';
+
+        try {
+            const url = 'https://nominatim.openstreetmap.org/reverse'
+                + '?format=jsonv2&accept-language=id'
+                + '&lat=' + posisi.lat
+                + '&lon=' + posisi.lng;
+
+            const respon = await fetch(url, {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!respon.ok) {
+                throw new Error('HTTP Error: ' + respon.status);
+            }
+
+            const data = await respon.json();
+
+            if (!data.display_name) {
+                throw new Error('Alamat tidak ditemukan.');
+            }
+
+            document.getElementById('alamat').value = data.display_name;
+
+            statusAlamat.textContent = 'Alamat berhasil diisi.';
+
+        } catch (error) {
+            console.error('Reverse Geocoding:', error);
+
+            statusAlamat.textContent =
+                'Gagal mengambil alamat: ' + error.message;
+
+        } finally {
+            tombolAlamat.disabled = false;
+        }
+    });
+
+});
 </script>
 @endpush

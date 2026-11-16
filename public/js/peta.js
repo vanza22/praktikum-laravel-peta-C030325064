@@ -1,48 +1,63 @@
 const Peta = {
     // Pusat Kota Banjarmasin, urutan [latitude, longitude]
     pusat: [-3.3194, 114.5908],
- 
+
     buat(idElemen, zoom = 12) {
         const map = L.map(idElemen).setView(Peta.pusat, zoom);
- 
+
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         }).addTo(map);
- 
+
         return map;
     },
- 
+
     // Mencegah teks dari database dibaca sebagai HTML (XSS)
     esc(teks) {
         const d = document.createElement('div');
         d.textContent = teks ?? '';
         return d.innerHTML;
     },
- 
-    // Mengambil seluruh fitur (Feature) sekolah dari endpoint GeoJSON
-    async ambilSekolah(jenjang = '') {
-        const url = `${window.PETA_URL.data}?jenjang=${encodeURIComponent(jenjang)}`;
+
+    // Mengambil data sekolah berdasarkan jenjang, status, dan bounding box
+    async ambilSekolah(jenjang = '', status = '', map = null) {
+        const params = new URLSearchParams({
+            jenjang: jenjang,
+            status: status,
+        });
+
+        // Mengirim batas peta jika objek map tersedia
+        if (map) {
+            const batas = map.getBounds();
+
+            params.append('north', batas.getNorth());
+            params.append('south', batas.getSouth());
+            params.append('east', batas.getEast());
+            params.append('west', batas.getWest());
+        }
+
+        const url = `${window.PETA_URL.data}?${params.toString()}`;
         const respon = await fetch(url);
- 
+
         if (!respon.ok) {
             throw new Error('Gagal memuat data sekolah');
         }
- 
+
         const data = await respon.json();
         return data.features;
     },
- 
+
     // GeoJSON [lng, lat] menjadi Leaflet [lat, lng]
     latlng(fitur) {
         const [lng, lat] = fitur.geometry.coordinates;
         return [lat, lng];
     },
- 
+
     popup(fitur) {
         const p = fitur.properties;
         const [lat, lng] = Peta.latlng(fitur);
- 
+
         return `
             <strong>${Peta.esc(p.nama)}</strong><br>
             NPSN: ${Peta.esc(p.npsn)}<br>
@@ -55,7 +70,7 @@ const Peta = {
             <small>Koordinat: ${lat}, ${lng}</small>
         `;
     },
- 
+
     // Jarak garis lurus (km) antara dua titik [lat, lng], rumus Haversine
     jarakKm(a, b) {
         const R = 6371;
@@ -64,10 +79,10 @@ const Peta = {
         const dLng = rad(b[1] - a[1]);
         const h = Math.sin(dLat / 2) ** 2 +
             Math.cos(rad(a[0])) * Math.cos(rad(b[0])) * Math.sin(dLng / 2) ** 2;
- 
+
         return 2 * R * Math.asin(Math.sqrt(h));
     },
- 
+
     // Penanda bulat berisi angka (dipakai pada menu Rute)
     ikonAngka(angka, warna) {
         return L.divIcon({
