@@ -32,8 +32,8 @@
     const map = Peta.buat('peta');
     let lapisan = null;
 
-    const urlBatas = @json(asset('geojson/batas-kecamatan.geojson'));
-
+    const urlBatas = @json(asset('geojson/semua-kecamatan.geojson'));
+    
     let batasWilayah = null;
 
     function warna(rasio) {
