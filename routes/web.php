@@ -9,16 +9,6 @@ use App\Http\Controllers\ProfilSekolahController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\DB;
 
-// Pemantauan koneksi database
-Route::get('/health', function () {
-    return response()->json([
-        'status' => 'healthy',
-        'application' => 'running',
-    ]);
-})->withoutMiddleware([
-    \Illuminate\Session\Middleware\StartSession::class,
-    \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-]);
 
 // Publik
 Route::controller(PetaController::class)->group(function () {
