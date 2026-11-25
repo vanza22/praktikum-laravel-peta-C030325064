@@ -84,3 +84,22 @@ Route::middleware('auth')->group(function () {
             [ProfilSekolahController::class, 'update'])->name('sekolah.profil.update');
     });
 });
+
+Route::get('/health', function () {
+    try {
+        \Illuminate\Support\Facades\DB::select('SELECT 1');
+        return response()->json([
+            'status' => 'ok',
+            'application' => 'running',
+            'database' => 'connected',
+        ], 200);
+
+    } catch (\Throwable $e) {
+        report($e);
+        return response()->json([
+            'status' => 'error',
+            'application' => 'running',
+            'database' => 'disconnected',
+        ], 503);
+    }
+})->name('health');
