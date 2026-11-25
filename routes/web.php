@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 // Pemantauan koneksi database
 Route::get('/health', function () {
     try {
-        DB::connection()->getPdo();
+        DB::select('SELECT 1');
 
         return response()->json([
             'status' => 'healthy',
@@ -20,6 +20,8 @@ Route::get('/health', function () {
         ], 200);
 
     } catch (\Throwable $e) {
+        \Log::error('Health check gagal: ' . $e->getMessage());
+
         return response()->json([
             'status' => 'unhealthy',
             'database' => 'disconnected',
