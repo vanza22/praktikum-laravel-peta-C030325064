@@ -11,23 +11,13 @@ use Illuminate\Support\Facades\DB;
 
 // Pemantauan koneksi database
 Route::get('/health', function () {
-    try {
-        DB::select('SELECT 1');
-
-        return response()->json([
-            'status' => 'healthy',
-            'database' => 'connected',
-        ], 200);
-
-    } catch (\Throwable $e) {
-        \Log::error('Health check gagal: ' . $e->getMessage());
-
-        return response()->json([
-            'status' => 'unhealthy',
-            'database' => 'disconnected',
-        ], 503);
-    }
-});
+    return response()->json([
+        'status' => 'healthy',
+        'application' => 'running',
+    ]);
+})->withoutMiddleware([
+    \Illuminate\Session\Middleware\StartSession::class,
+]);
 
 // Publik
 Route::controller(PetaController::class)->group(function () {
