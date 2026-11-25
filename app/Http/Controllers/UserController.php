@@ -31,6 +31,10 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge([
+            'email' => strtolower($request->email),
+        ]);
+
         $data = $request->validate($this->rules($request));
 
         if ($data['role'] !== Role::SEKOLAH->value) {
@@ -53,6 +57,10 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
+        $request->merge([
+            'email' => strtolower($request->email),
+        ]);
+
         $data = $request->validate($this->rules($request, $user->id));
 
         if ($user->is($request->user()) && $data['role'] !== Role::ADMIN->value) {

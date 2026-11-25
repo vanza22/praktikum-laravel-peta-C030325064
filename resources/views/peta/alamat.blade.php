@@ -26,6 +26,8 @@
     const tombolLokasi = document.getElementById('lokasi-saya');
     const statusLokasi = document.getElementById('status-lokasi');
 
+    const urlRadius = @json(route('peta.data.radius'));
+
     let semua = [];
     let terakhir = 0;
 
@@ -40,7 +42,7 @@
             throw err;
         });
 
-    // Mencari sekolah terdekat
+    // Mencari sekolah terdekat menggunakan Haversine
     function terdekat(titik, n = 3) {
         return semua
             .map((f) => ({
@@ -66,6 +68,23 @@
         return respon.json();
     }
 
+    // Mengambil jumlah sekolah dalam radius menggunakan PostGIS
+    async function hitungSekolahRadius(lat, lng) {
+        const parameter = new URLSearchParams({
+            latitude: lat,
+            longitude: lng,
+            radius: 1000
+        });
+
+        const respon = await fetch(`${urlRadius}?${parameter}`);
+
+        if (!respon.ok) {
+            throw new Error('Gagal menghitung radius sekolah: HTTP ' + respon.status);
+        }
+
+        return respon.json();
+    }
+
     // Menampilkan lokasi dan melakukan analisis jangkauan
     async function tampilkanLokasi(lat, lng) {
         const sekarang = Date.now();
@@ -81,6 +100,10 @@
         const titik = [lat, lng];
 
         await dataSekolah;
+
+        // Mengambil jumlah sekolah dari database PostGIS
+        const hasilRadius = await hitungSekolahRadius(lat, lng);
+        const jumlahDalamJangkauan = hasilRadius.jumlah;
 
         lapisan.clearLayers();
 
@@ -105,13 +128,7 @@
         })
         .addTo(lapisan);
 
-        // Menghitung sekolah yang berada dalam radius 1 km
-        const dalamJangkauan = semua.filter((f) => {
-            const jarak = Peta.jarakKm(titik, Peta.latlng(f));
-            return jarak <= 1;
-        });
-
-        // Mencari tiga sekolah terdekat
+        // Mencari tiga sekolah terdekat menggunakan Haversine
         const dekat = terdekat(titik);
 
         dekat.forEach((d) => {
@@ -182,7 +199,7 @@
                 Analisis Jangkauan (Radius 1 km)
             </strong>
             <p style="margin: 4px 0;">
-                Terdapat <strong>${dalamJangkauan.length} sekolah</strong>
+                Terdapat <strong>${jumlahDalamJangkauan} sekolah</strong>
                 dalam jangkauan 1 km.
             </p>
 

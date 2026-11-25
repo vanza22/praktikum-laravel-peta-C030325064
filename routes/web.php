@@ -7,11 +7,31 @@ use App\Http\Controllers\SekolahController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfilSekolahController;
 use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\DB;
+
+// Pemantauan koneksi database
+Route::get('/health', function () {
+    try {
+        DB::connection()->getPdo();
+
+        return response()->json([
+            'status' => 'healthy',
+            'database' => 'connected',
+        ], 200);
+
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status' => 'unhealthy',
+            'database' => 'disconnected',
+        ], 503);
+    }
+});
 
 // Publik
 Route::controller(PetaController::class)->group(function () {
     Route::get('/', 'index')->name('peta.index');
     Route::get('/data/sekolah', 'geojson')->name('peta.data');
+    Route::get('/data/sekolah-radius', 'sekolahDalamRadius')->name('peta.data.radius');
     Route::get('/pencarian', 'cari')->name('peta.cari');
     Route::get('/klaster', 'klaster')->name('peta.klaster');
     Route::get('/peta-panas', 'panas')->name('peta.panas');
@@ -19,7 +39,6 @@ Route::controller(PetaController::class)->group(function () {
     Route::get('/data/wilayah', 'geojsonWilayah')->name('peta.data.wilayah');
     Route::get('/rute', 'rute')->name('peta.rute');
     Route::get('/cek-alamat', 'alamat')->name('peta.alamat');
-
 });
 
 // Tamu

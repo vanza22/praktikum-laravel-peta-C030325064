@@ -16,11 +16,14 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        $request->merge([
+            'email' => strtolower($request->email),
+        ]);
+
         $credentials = $request->validate([
             'email'    => ['required', 'email'],
             'password' => ['required'],
         ]);
-
         $credentials['is_active'] = true;
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
